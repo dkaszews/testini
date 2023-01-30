@@ -82,7 +82,7 @@ The test is considered failed if it throws an exception or adds to `v:errors`.
 #### `suite.before.each`
 
 Defines a function to be run before each test in the suite.
-A failure (exception or adding to `v:errors`) aborts run of the entire suite.
+A failure (exception or adding to `v:errors`) aborts run of the test.
 
 #### `suite.after.each`
 
@@ -92,7 +92,7 @@ A failure (exception or adding to `v:errors`) is treated as a failure in the las
 #### `suite.before.all`
 
 Defines a function to be run once in the suite, before any tests.
-A failure (exception or adding to `v:errors`) aborts run of the entire suite.
+A failure (exception or adding to `v:errors`) aborts run of the suite.
 
 #### `suite.after.all`
 

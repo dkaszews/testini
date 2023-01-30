@@ -37,12 +37,13 @@ function s:run_part(suite, middle, part) abort
             call call(s:suites[a:suite][a:middle][a:part], [])
         endif
     catch 'testini.ignore'
-        return
+        " Do nothing
     catch
         let l:exception = v:throwpoint .. ': thrown ' .. v:exception
         call extend(v:errors, [ l:exception ])
     endtry
     call extend(s:errors, v:errors)
+    return v:errors == []
 endfunction
 
 function! s:decode_callstacks() abort
@@ -80,18 +81,28 @@ function! s:decode_callstacks() abort
     endfor
 endfunction
 
+function! s:run_test(suite, test) abort
+    if s:run_part(a:suite, 'before', 'each')
+        call s:run_part(a:suite, 'test', a:test)
+    endif
+    call s:run_part(a:suite, 'after', 'each')
+endfunction
+
+function! s:run_suite(suite) abort
+    if s:run_part(a:suite, 'before', 'all')
+        for l:test in keys(s:suites[a:suite].test)
+            call s:run_test(a:suite, l:test)
+        endfor
+    endif
+    call s:run_part(a:suite, 'after', 'all')
+endfunction
+
 function! testini#run() abort
     " Keep errors in the script variable so they can be accessed by timeout
     let s:errors = []
     call s:source()
     for l:suite in keys(s:suites)
-        call s:run_part(l:suite, 'before', 'all')
-        for l:test in keys(s:suites[l:suite].test)
-            call s:run_part(l:suite, 'before', 'each')
-            call s:run_part(l:suite, 'test', l:test)
-            call s:run_part(l:suite, 'after', 'each')
-        endfor
-        call s:run_part(l:suite, 'after', 'all')
+        call s:run_suite(l:suite)
     endfor
     call s:decode_callstacks()
     return s:errors
