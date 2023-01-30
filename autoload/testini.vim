@@ -66,18 +66,18 @@ function! s:decode_callstacks() abort
     let l:separator = '\v(^|\.\.| |\[)' 
     for l:i in range(len(s:errors))
         " Split callstack and message to avoid matches in arbitrary text
-        let [ l:callstack, l:message ] = split(s:errors[l:i], ':\zs')
+        let [ l:stack, l:message ] = split(s:errors[l:i], ':\zs')
 
         " 'foo[10]..bar line 20' => 'foo[10]..bar[20]' for consistency
-        let l:callstack = substitute(l:callstack, '\v\c line (\d)', '[\1]', '')
-        let l:callstack = substitute(l:callstack, '\v\c^.{-}run_part\[4\]\.\.', '', '')
+        let l:stack = substitute(l:stack, '\v\c line (\d)', '[\1]', '')
+        let l:stack = substitute(l:stack, '\v\c^.{-}run_part\[4\]\.\.', '', '')
 
         for [ l:code, l:name ] in items(l:fun_map)
             let l:pat = l:separator .. l:code .. l:separator
             let l:sub = '\1' .. l:name .. '\2'
-            let l:callstack = substitute(l:callstack, l:pat, l:sub, 'g')
+            let l:stack = substitute(l:stack, l:pat, l:sub, 'g')
         endfor
-        let s:errors[l:i] = join([ l:callstack, l:message ], '')
+        let s:errors[l:i] = l:stack .. l:message
     endfor
 endfunction
 
