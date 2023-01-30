@@ -1,9 +1,3 @@
-" TODO: patterns
-" TODO: timers
-" TODO: params
-" TODO: fence
-" TODO: log
-
 function! testini#suite() abort
     if s:suite_name == ''
         throw 'testini.empty_suite(): do not manually source test scripts'
@@ -68,11 +62,18 @@ function! s:decode_callstacks() abort
         endfor
     endfor
 
+    let l:separator = '\v(^|\.\.| |\[)' 
     for l:i in range(len(s:errors))
+        " Split callstack and message to avoid matches in arbitrary text
         let [ l:callstack, l:message ] = split(s:errors[l:i], ':\zs')
+
+        " 'foo[10]..bar line 20' => 'foo[10]..bar[20]' for consistency
+        let l:callstack = substitute(l:callstack, '\v\c line (\d)', '[\1]', '')
+        let l:callstack = substitute(l:callstack, '\v\c^.{-}run_part\[4\]\.\.', '', '')
+
         for [ l:code, l:name ] in items(l:fun_map)
-            let l:pat = '\v(\.\.| )' .. l:code .. '(\.\.| )'
-            let l:sub = '\1' .. l:name .. '\1'
+            let l:pat = l:separator .. l:code .. l:separator
+            let l:sub = '\1' .. l:name .. '\2'
             let l:callstack = substitute(l:callstack, l:pat, l:sub, 'g')
         endfor
         let s:errors[l:i] = join([ l:callstack, l:message ], '')
@@ -84,13 +85,13 @@ function! testini#run() abort
     let s:errors = []
     call s:source()
     for l:suite in keys(s:suites)
-        call s:run_part(l:suite, 'before', 'suite')
+        call s:run_part(l:suite, 'before', 'all')
         for l:test in keys(s:suites[l:suite].test)
             call s:run_part(l:suite, 'before', 'each')
             call s:run_part(l:suite, 'test', l:test)
             call s:run_part(l:suite, 'after', 'each')
         endfor
-        call s:run_part(l:suite, 'after', 'suite')
+        call s:run_part(l:suite, 'after', 'all')
     endfor
     call s:decode_callstacks()
     return s:errors
