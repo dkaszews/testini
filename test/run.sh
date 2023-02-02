@@ -2,8 +2,8 @@
 
 # While Testini is designed to need no runner scripts, it is better to write
 # a simple one for Testini itself. Otherwise, there is a risk that some fatal
-# error such as `return []` at top of `testini#run` might cause a failure that
-# is not detectable inside the framework itself. Plus, want to test failures.
+# bug such as `return []` at top of `testini#run` might cause a failure that
+# is not detectable inside the framework itself. Plus, want negative cases.
 
 VIM_COMMAND=${1:-vim}
 SCRIPT_ROOT=$(realpath $(dirname $0))
