@@ -30,6 +30,10 @@ function! s:source() abort
     return s:suites
 endfunction
 
+function s:exception() abort
+    return v:throwpoint .. ': thrown ' .. v:exception
+endfunction
+
 function s:run_part(suite, middle, part) abort
     let v:errors = []
     try
@@ -39,8 +43,7 @@ function s:run_part(suite, middle, part) abort
     catch 'testini.ignore'
         " Do nothing
     catch
-        let l:exception = v:throwpoint .. ': thrown ' .. v:exception
-        call extend(v:errors, [ l:exception ])
+        call add(v:errors, s:exception())
     endtry
     call extend(s:errors, v:errors)
     return v:errors == []
@@ -66,7 +69,10 @@ function! s:decode_callstacks() abort
     let l:separator = '\v(^|\.\.| |\[)' 
     for l:i in range(len(s:errors))
         " Split callstack and message to avoid matches in arbitrary text
-        let [ l:stack, l:message ] = split(s:errors[l:i], ':\zs')
+        " Cannot use `split()` because it has no way of limiting
+        let l:pivot = stridx(s:errors[l:i], ':')
+        let l:stack = s:errors[l:i][: l:pivot]
+        let l:message = s:errors[l:i][l:pivot + 1 :]
 
         " 'foo[10]..bar line 20' => 'foo[10]..bar[20]' for consistency
         let l:stack = substitute(l:stack, '\v\c line (\d)', '[\1]', '')
@@ -90,7 +96,7 @@ endfunction
 
 function! s:run_suite(suite) abort
     if s:run_part(a:suite, 'before', 'all')
-        for l:test in keys(s:suites[a:suite].test)
+        for l:test in sort(keys(s:suites[a:suite].test))
             call s:run_test(a:suite, l:test)
         endfor
     endif
@@ -109,10 +115,13 @@ function! testini#run() abort
 endfunction
 
 function! testini#run_ci() abort
-    if testini#run() != []
+    try
+        call testini#run()
         call writefile(s:errors, 'testini.log')
-        cquit! 1
-    endif
-    quit!
+        execute 'cquit! ' .. (s:errors != [])
+    catch
+        call writefile([ 'INTERNAL ERROR:', s:exception() ], 'testini.log')
+        cquit 2
+    endtry
 endfunction
 
