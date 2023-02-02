@@ -75,7 +75,7 @@ function! s:decode_callstacks() abort
         let l:message = s:errors[l:i][l:pivot + 1 :]
 
         " 'foo[10]..bar line 20' => 'foo[10]..bar[20]' for consistency
-        let l:stack = substitute(l:stack, '\v\c line (\d)', '[\1]', '')
+        let l:stack = substitute(l:stack, '\v\c,? line (\d)', '[\1]', '')
         let l:stack = substitute(l:stack, '\v\c^.{-}run_part\[4\]\.\.', '', '')
 
         for [ l:code, l:name ] in items(l:fun_map)
