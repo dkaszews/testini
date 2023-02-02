@@ -5,6 +5,7 @@
 # error such as `return []` at top of `testini#run` might cause a failure that
 # is not detectable inside the framework itself. Plus, want to test failures.
 
+VIM_COMMAND=${1:-vim}
 SCRIPT_ROOT=$(realpath $(dirname $0))
 TESTINI_ROOT=$(realpath $SCRIPT_ROOT/..)
 TESTINI_VIM=$(realpath $TESTINI_ROOT/plugin/testini.vim)
@@ -20,7 +21,7 @@ for dir in */; do
     echo -e "Running tests from $(realpath $dir)"
     pushd $dir > /dev/null
 
-    vim -u $TESTINI_VIM -c TestiniCi
+    $VIM_COMMAND -u $TESTINI_VIM -c TestiniCi
     exitcode=$?
     expected_exitcode=$(get_expected_exitcode)
 
