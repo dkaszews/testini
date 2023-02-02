@@ -132,13 +132,11 @@ call testini#verify()
 ...
 ```
 
-## Commands and functions
-
-### `Testini` `testini#run()`
+### `Testini`, `testini#run()`
 
 Runs all tests, returns array of failed assertions and thrown exceptions, or empty array if all tests have passed.
 
-### `TestiniCi` `testini#run_ci()`
+### `TestiniCi`, `testini#run_ci()`
 
 Same as above, but writes result to `testini.log`, then exits vim with exit code `0` if all tests have passed, or `1` if any of them have failed.
 
