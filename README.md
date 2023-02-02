@@ -62,7 +62,7 @@ To add Testini itself to your CI workspace, simply clone it.
 If you clone it inside your own plugin, it is recommended to do it in a dot-hidden directory so that Testini's own tests are not picked up be the glob:
 
 ```bash
-[[ -d .testini ]] || https://github.com/dkaszews/testini .testini
+[[ -d .testini ]] || git clone https://github.com/dkaszews/testini .testini
 ```
 
 To load your own plugin or additional dependencies, you can place those commands in the script scope of one of your tests, or a separate file such as `init.testini.vim`, as it will be sourced before all tests are run, even if it does not call `testini#suite()` itself.
