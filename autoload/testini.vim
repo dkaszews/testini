@@ -58,7 +58,7 @@ function! s:run_part(suite, middle, part) abort
         call add(v:errors, s:exception())
     endtry
     call s:map_errors(a:suite, a:middle, a:part, v:errors)
-    call s:log('fail', v:errors)
+    call s:log('FAIL', v:errors)
     return v:errors == []
 endfunction
 
@@ -89,9 +89,14 @@ function! s:map_errors(suite, middle, part, errors) abort
     return a:errors
 endfunction
 
+function! s:log_test(suite, test, result) abort
+    call s:log(a:result, printf('%s.test.%s: %sed', a:suite, a:test, a:result))
+endfunction
+
 function! s:run_test(suite, test) abort
     if s:run_part(a:suite, 'before', 'each')
-        call s:run_part(a:suite, 'test', a:test)
+        let l:success = s:run_part(a:suite, 'test', a:test)
+        call s:log_test(a:suite, a:test, l:success ? 'Pass' : 'Fail')
     endif
     call s:run_part(a:suite, 'after', 'each')
 endfunction

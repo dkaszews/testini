@@ -1,1 +1,3 @@
 [FAIL] simple.test.two_plus_two_is_five[1]: Expected 5 but got 4
+[FAIL] simple.test.two_plus_two_is_five: Failed
+[PASS] simple.test.two_plus_two_is_four: Passed
