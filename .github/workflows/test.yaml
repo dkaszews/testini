@@ -1,0 +1,29 @@
+name: 'Run tests'
+on:
+  workflow_dispatch:
+  push: { 'branches': 'main' }
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Test:
+    strategy:
+      matrix:
+        vim: [ 'vim', 'neovim' ]
+        os: [ 'ubuntu-22.04', 'windows-2022' ]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v2
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          neovim: ${{ matrix.vim == 'neovim' }}
+      - name: Check vim version
+        run: ${{ steps.vim.outputs.executable }} --version
+      - name: Run tests
+        run: ./test/run.sh ${{ steps.vim.outputs.executable }}
+

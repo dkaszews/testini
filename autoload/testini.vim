@@ -118,10 +118,10 @@ function! testini#run_ci() abort
     try
         call testini#run()
         call writefile(s:errors, 'testini.log')
-        execute 'cquit! ' .. (s:errors != [])
+        execute (s:errors == [] ? 'quit!' : 'cquit!')
     catch
         call writefile([ 'INTERNAL ERROR:', s:exception() ], 'testini.log')
-        cquit 2
+        cquit!
     endtry
 endfunction
 

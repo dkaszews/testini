@@ -5,7 +5,9 @@
 # bug such as `return []` at top of `testini#run` might cause a failure that
 # is not detectable inside the framework itself. Plus, want negative cases.
 
-VIM_COMMAND=${1:-vim}
+VIM=${1:-vim}
+NEOVIM=$($VIM --version | grep -cm1 'NVIM')
+HEADLESS=$([[ $NEOVIM -ne 0 ]] && echo '--headless' || echo '--not-a-term')
 SCRIPT_ROOT=$(realpath $(dirname $0))
 TESTINI_ROOT=$(realpath $SCRIPT_ROOT/..)
 TESTINI_VIM=$(realpath $TESTINI_ROOT/plugin/testini.vim)
@@ -21,7 +23,7 @@ for dir in */; do
     echo -e "Running tests from $(realpath $dir)"
     pushd $dir > /dev/null
 
-    $VIM_COMMAND -u $TESTINI_VIM -c TestiniCi
+    $VIM $HEADLESS -u $TESTINI_VIM -c TestiniCi
     exitcode=$?
     expected_exitcode=$(get_expected_exitcode)
 
