@@ -1,8 +1,8 @@
-verify.test.verify_args[1]: Non-terminating assert: Expected 1 but got 0
-verify.test.verify_args[3]: Another non-terminating assert: Expected 1 but got 0
-verify.test.verify_args[4]: Fail: Expected 1 but got 0
-verify.test.verify_args[4]..testini#verify[3]: thrown suite.verify()
-verify.test.verify_empty[1]: Non-terminating assert: Expected 1 but got 0
-verify.test.verify_empty[2]..testini#verify[3]: thrown suite.verify()
-verify.test.verify_mix[1]: Fail: Expected 1 but got 0
-verify.test.verify_mix[1]..testini#verify[3]: thrown suite.verify()
+[FAIL] verify.test.verify_args[1]: Non-terminating assert: Expected 1 but got 0
+[FAIL] verify.test.verify_args[3]: Another non-terminating assert: Expected 1 but got 0
+[FAIL] verify.test.verify_args[4]: Fail: Expected 1 but got 0
+[FAIL] verify.test.verify_args[4]..testini#verify[3]: thrown suite.verify()
+[FAIL] verify.test.verify_empty[1]: Non-terminating assert: Expected 1 but got 0
+[FAIL] verify.test.verify_empty[2]..testini#verify[3]: thrown suite.verify()
+[FAIL] verify.test.verify_mix[1]: Fail: Expected 1 but got 0
+[FAIL] verify.test.verify_mix[1]..testini#verify[3]: thrown suite.verify()

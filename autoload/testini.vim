@@ -30,11 +30,21 @@ function! s:source() abort
     return s:suites
 endfunction
 
-function s:exception() abort
+function! s:exception() abort
     return v:throwpoint .. ': thrown ' .. v:exception
 endfunction
 
-function s:run_part(suite, middle, part) abort
+function! s:log(level, message) abort
+    let l:level = toupper(a:level)
+    let l:messages = type(a:message) == v:t_list ? a:message : [ a:message ]
+    if l:level == 'FAIL'
+        call extend(s:errors, l:messages)
+    endif
+    call map(l:messages, 'printf("[%s] %s", l:level, v:val)')
+    call extend(s:logdata, l:messages)
+endfunction
+
+function! s:run_part(suite, middle, part) abort
     if !has_key(s:suites[a:suite][a:middle], a:part)
         return 1
     endif
@@ -48,7 +58,7 @@ function s:run_part(suite, middle, part) abort
         call add(v:errors, s:exception())
     endtry
     call s:map_errors(a:suite, a:middle, a:part, v:errors)
-    call extend(s:errors, v:errors)
+    call s:log('fail', v:errors)
     return v:errors == []
 endfunction
 
@@ -98,6 +108,7 @@ endfunction
 function! testini#run() abort
     " Keep errors in the script variable so they can be accessed by timeout
     let s:errors = []
+    let s:logdata = []
     call s:source()
     for l:suite in keys(s:suites)
         call s:run_suite(l:suite)
@@ -108,7 +119,7 @@ endfunction
 function! testini#run_ci() abort
     try
         call testini#run()
-        call writefile(s:errors, 'testini.log')
+        call writefile(s:logdata, 'testini.log')
         execute (s:errors == [] ? 'quit!' : 'cquit!')
     catch
         call writefile([ 'INTERNAL ERROR:', s:exception() ], 'testini.log')
