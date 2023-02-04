@@ -35,56 +35,48 @@ function s:exception() abort
 endfunction
 
 function s:run_part(suite, middle, part) abort
+    if !has_key(s:suites[a:suite][a:middle], a:part)
+        return 1
+    endif
+
     let v:errors = []
     try
-        if has_key(s:suites[a:suite][a:middle], a:part)
-            call call(s:suites[a:suite][a:middle][a:part], [])
-        endif
+        call call(s:suites[a:suite][a:middle][a:part], [])
     catch 'testini.ignore'
         " Do nothing
     catch
         call add(v:errors, s:exception())
     endtry
+    call s:map_errors(a:suite, a:middle, a:part, v:errors)
     call extend(s:errors, v:errors)
     return v:errors == []
 endfunction
 
-function! s:decode_callstacks() abort
-    if s:errors == []
+function! s:map_errors(suite, middle, part, errors) abort
+    if a:errors == []
         return
     endif
 
-    let l:fun_map = {}
-    for l:suite in keys(s:suites)
-        for l:middle in keys(s:suites[l:suite])
-            for l:part in keys(s:suites[l:suite][l:middle])
-                let l:name = join([l:suite, l:middle, l:part], '.')
-                let l:fun = string(s:suites[l:suite][l:middle][l:part])
-                let l:code = substitute(l:fun, '\v\D*(\d+)\D.*', '\1', '')
-                let l:fun_map[l:code] = l:name
-            endfor
-        endfor
-    endfor
+    let l:name = join([a:suite, a:middle, a:part], '.')
+    let l:fun = string(s:suites[a:suite][a:middle][a:part])
+    let l:code = substitute(l:fun, '\v\D*(\d+)\D.*', '\1', '')
 
     let l:separator = '\v(^|\.\.| |\[)' 
-    for l:i in range(len(s:errors))
+    for l:i in range(len(a:errors))
         " Split callstack and message to avoid matches in arbitrary text
         " Cannot use `split()` because it has no way of limiting
-        let l:pivot = stridx(s:errors[l:i], ':')
-        let l:stack = s:errors[l:i][: l:pivot]
-        let l:message = s:errors[l:i][l:pivot + 1 :]
+        let l:pivot = stridx(a:errors[l:i], ':')
+        let l:stack = a:errors[l:i][: l:pivot]
+        let l:message = a:errors[l:i][l:pivot + 1 :]
 
         " 'foo[10]..bar line 20' => 'foo[10]..bar[20]' for consistency
         let l:stack = substitute(l:stack, '\v\c,? line (\d)', '[\1]', '')
-        let l:stack = substitute(l:stack, '\v\c^.{-}run_part\[4\]\.\.', '', '')
-
-        for [ l:code, l:name ] in items(l:fun_map)
-            let l:pat = l:separator .. l:code .. l:separator
-            let l:sub = '\1' .. l:name .. '\2'
-            let l:stack = substitute(l:stack, l:pat, l:sub, 'g')
-        endfor
-        let s:errors[l:i] = l:stack .. l:message
+        let l:stack = substitute(l:stack, '\v\c^.{-}run_part\[\d\]\.\.', '', '')
+        let l:pat = l:separator .. l:code .. l:separator
+        let l:stack = substitute(l:stack, l:pat,  '\1' .. l:name .. '\2', 'g')
+        let a:errors[l:i] = l:stack .. l:message
     endfor
+    return a:errors
 endfunction
 
 function! s:run_test(suite, test) abort
@@ -110,7 +102,6 @@ function! testini#run() abort
     for l:suite in keys(s:suites)
         call s:run_suite(l:suite)
     endfor
-    call s:decode_callstacks()
     return s:errors
 endfunction
 
