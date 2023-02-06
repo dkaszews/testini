@@ -1,5 +1,0 @@
-[INFO] ignore_post: Running
-[INFO] ignore_post.test.ignored_after_assert_will_fail: Running
-[FAIL] ignore_post.test.ignored_after_assert_will_fail[1]: Expected 1 but got 0
-[FAIL] ignore_post.test.ignored_after_assert_will_fail: Failed
-[FAIL] ignore_post: Failed

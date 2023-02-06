@@ -9,8 +9,8 @@ function! testini#suite() abort
     return s:suites[s:suite_name]
 endfunction
 
-function! testini#ignore(...) abort
-    throw 'testini.ignore(' .. get(a:, 1, '') .. ')'
+function! testini#skip(...) abort
+    throw 'testini.skip(' .. get(a:, 1, '') .. ')'
 endfunction
 
 function! testini#verify(...) abort
@@ -56,8 +56,11 @@ function! s:run_part(suite, middle, part) abort
     let v:errors = []
     try
         call call(s:suites[a:suite][a:middle][a:part], [])
-    catch 'testini.ignore'
-        " Do nothing
+    catch 'testini.skip'
+        if v:errors == []
+            call s:log('skip', printf('%s.%s.%s: Skipped',
+                \ a:suite, a:middle, a:part))
+        endif
     catch
         call add(v:errors, s:exception())
     endtry

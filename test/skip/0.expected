@@ -1,0 +1,5 @@
+[INFO] skip: Running
+[INFO] skip.test.skipped_wont_fail: Running
+[SKIP] skip.test.skipped_wont_fail: Skipped
+[PASS] skip.test.skipped_wont_fail: Passed
+[PASS] skip: Passed
