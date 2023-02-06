@@ -58,8 +58,7 @@ function! s:run_part(suite, middle, part) abort
         call call(s:suites[a:suite][a:middle][a:part], [])
     catch 'testini.skip'
         if v:errors == []
-            call s:log('skip', printf('%s.%s.%s: Skipped',
-                \ a:suite, a:middle, a:part))
+            call s:log('skip', printf('%s.%s.%s: Skipped', a:suite, a:middle, a:part))
         endif
     catch
         call add(v:errors, s:exception())
