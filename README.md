@@ -27,12 +27,12 @@ endfunction
 ```
 
 Save the file and run `Testini` command.
-You should see an empty array as a result, which means no tests have failed.
+You should see `'All tests passed!'`
 
 If you change the `assert_equal(4, 2 + 2)` to `assert_equal(5, 2 + 2)`, resave and rerun, you will see instead output like:
 
 ```viml
-['mytest.test.two_plus_two_is_four[1]: Expected 5 but got 4']
+mytest.test.two_plus_two_is_four[1]: Expected 5 but got 4
 ```
 
 ### Instalation
@@ -57,6 +57,9 @@ vim -u path_to_testini/plugin/testini.vim -c TestiniCi
 
 The `-u` option treats loads Testini at startup while at the same time preventing loading of the default `.vimrc`.
 [`TestiniCi`](#testinici-testinirun_ci) is roughly equivalent to the regular [`Testini`](#testini-testinirun) command, but it writes results to file `testini.log` quits vim with exit code indicating a success or failure which the CI environment can pick up.
+
+If you use Vim, you may need to add `--not-a-term` to avoid it hanging on "warning: input not from terminal" depending on your CI.
+It is not needed for Neovim.
 
 To add Testini itself to your CI workspace, simply clone it.
 If you clone it inside your own plugin, it is recommended to do it in a dot-hidden directory so that Testini's own tests are not picked up be the glob:
@@ -100,11 +103,11 @@ A failure (exception or adding to `v:errors`) aborts run of the suite.
 Defines a function to be run once in the suite, after all tests.
 A failure (exception or adding to `v:errors`) is reported separately.
 
-### `testini#ignore([ {message} ])`
+### `testini#skip([ {message} ])`
 
 Terminates current test with optional message.
-The test's status is the same as at time of call, so recommended to place it as the first instruction, so that ignored tests are not failed.
-This is equivalent to calling `return` inside the test function, but can also be used inside helper functions deeper in the callstack.
+Only has effect if the test is not failed already, so recommended to place it as the first instruction.
+This is roughly equivalent to calling `return` inside the test function, but can also be used inside helper functions deeper in the callstack.
 
 ### `testini#verify([ {assertion}, [ {assertion}, ...] ])`
 
@@ -132,6 +135,11 @@ call testini#verify()
 ...
 ```
 
+### `testini#log({message})`
+
+Add log with tag `'[USER]'`.
+`{message}` can be a single string or an array of strings.
+
 ### `Testini`, `testini#run()`
 
 Runs all tests, returns array of failed assertions and thrown exceptions, or empty array if all tests have passed.
@@ -139,6 +147,17 @@ Runs all tests, returns array of failed assertions and thrown exceptions, or emp
 ### `TestiniCi`, `testini#run_ci()`
 
 Same as above, but writes result to `testini.log`, then exits vim with exit code `0` if all tests have passed, or `1` if any of them have failed.
+
+### `TestiniLog`, `testini#get_log()`
+
+Get detailed logs from last run.
+Each log is preceeded with a 4-letter tag related to its purpose and importance:
+
+* `'[INFO]'` - suite or test is currently running
+* `'[PASS]'` - suite or test has completed successfully
+* `'[FAIL]'` - suite or test has failed
+* `'[SKIP]'` - suite or test has been skipped
+* `'[USER]'` - user-provided logs
 
 ## FAQ
 
