@@ -20,6 +20,10 @@ function! testini#verify(...) abort
     endif
 endfunction
 
+function! testini#log(message) abort
+    call s:log('user', a:message)
+endfunction
+
 function! s:source() abort
     let s:suites = {}
     for l:file in glob('**/*.testini.vim', 0, 1)
@@ -116,6 +120,10 @@ function! s:run_suite(suite) abort
     endif
     let l:result *= s:run_part(a:suite, 'after', 'all')
     call s:log_result(l:result, a:suite)
+endfunction
+
+function! testini#get_log(...) abort
+    return s:logdata
 endfunction
 
 function! testini#run() abort
