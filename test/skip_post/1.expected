@@ -1,0 +1,5 @@
+[INFO] skip_post: Running
+[INFO] skip_post.test.skipped_after_assert_will_fail: Running
+[FAIL] skip_post.test.skipped_after_assert_will_fail[1]: Expected 1 but got 0
+[FAIL] skip_post.test.skipped_after_assert_will_fail: Failed
+[FAIL] skip_post: Failed

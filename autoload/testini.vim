@@ -9,8 +9,8 @@ function! testini#suite() abort
     return s:suites[s:suite_name]
 endfunction
 
-function! testini#ignore(...) abort
-    throw 'testini.ignore(' .. get(a:, 1, '') .. ')'
+function! testini#skip(...) abort
+    throw 'testini.skip(' .. get(a:, 1, '') .. ')'
 endfunction
 
 function! testini#verify(...) abort
@@ -18,6 +18,10 @@ function! testini#verify(...) abort
     if l:errors != []
         throw 'suite.verify()'
     endif
+endfunction
+
+function! testini#log(message) abort
+    call s:log('user', a:message)
 endfunction
 
 function! s:source() abort
@@ -30,94 +34,115 @@ function! s:source() abort
     return s:suites
 endfunction
 
-function s:exception() abort
+function! s:exception() abort
     return v:throwpoint .. ': thrown ' .. v:exception
 endfunction
 
-function s:run_part(suite, middle, part) abort
+function! s:log(level, message) abort
+    let l:level = toupper(a:level)
+    let l:messages = type(a:message) == v:t_list ? a:message : [ a:message ]
+    if l:level == 'FAIL'
+        call extend(s:errors, l:messages)
+    endif
+    call map(l:messages, 'printf("[%s] %s", l:level, v:val)')
+    call extend(s:logdata, l:messages)
+endfunction
+
+function! s:run_part(suite, middle, part) abort
+    if !has_key(s:suites[a:suite][a:middle], a:part)
+        return 1
+    endif
+
     let v:errors = []
     try
-        if has_key(s:suites[a:suite][a:middle], a:part)
-            call call(s:suites[a:suite][a:middle][a:part], [])
+        call call(s:suites[a:suite][a:middle][a:part], [])
+    catch 'testini.skip'
+        if v:errors == []
+            call s:log('skip', printf('%s.%s.%s: Skipped', a:suite, a:middle, a:part))
         endif
-    catch 'testini.ignore'
-        " Do nothing
     catch
         call add(v:errors, s:exception())
     endtry
-    call extend(s:errors, v:errors)
+    call s:map_errors(a:suite, a:middle, a:part, v:errors)
+    call s:log('FAIL', v:errors)
     return v:errors == []
 endfunction
 
-function! s:decode_callstacks() abort
-    if s:errors == []
+function! s:map_errors(suite, middle, part, errors) abort
+    if a:errors == []
         return
     endif
 
-    let l:fun_map = {}
-    for l:suite in keys(s:suites)
-        for l:middle in keys(s:suites[l:suite])
-            for l:part in keys(s:suites[l:suite][l:middle])
-                let l:name = join([l:suite, l:middle, l:part], '.')
-                let l:fun = string(s:suites[l:suite][l:middle][l:part])
-                let l:code = substitute(l:fun, '\v\D*(\d+)\D.*', '\1', '')
-                let l:fun_map[l:code] = l:name
-            endfor
-        endfor
-    endfor
+    let l:name = join([a:suite, a:middle, a:part], '.')
+    let l:fun = string(s:suites[a:suite][a:middle][a:part])
+    let l:code = substitute(l:fun, '\v\D*(\d+)\D.*', '\1', '')
 
     let l:separator = '\v(^|\.\.| |\[)' 
-    for l:i in range(len(s:errors))
+    for l:i in range(len(a:errors))
         " Split callstack and message to avoid matches in arbitrary text
         " Cannot use `split()` because it has no way of limiting
-        let l:pivot = stridx(s:errors[l:i], ':')
-        let l:stack = s:errors[l:i][: l:pivot]
-        let l:message = s:errors[l:i][l:pivot + 1 :]
+        let l:pivot = stridx(a:errors[l:i], ':')
+        let l:stack = a:errors[l:i][: l:pivot]
+        let l:message = a:errors[l:i][l:pivot + 1 :]
 
         " 'foo[10]..bar line 20' => 'foo[10]..bar[20]' for consistency
         let l:stack = substitute(l:stack, '\v\c,? line (\d)', '[\1]', '')
-        let l:stack = substitute(l:stack, '\v\c^.{-}run_part\[4\]\.\.', '', '')
-
-        for [ l:code, l:name ] in items(l:fun_map)
-            let l:pat = l:separator .. l:code .. l:separator
-            let l:sub = '\1' .. l:name .. '\2'
-            let l:stack = substitute(l:stack, l:pat, l:sub, 'g')
-        endfor
-        let s:errors[l:i] = l:stack .. l:message
+        let l:stack = substitute(l:stack, '\v\c^.{-}run_part\[\d\]\.\.', '', '')
+        let l:pat = l:separator .. l:code .. l:separator
+        let l:stack = substitute(l:stack, l:pat,  '\1' .. l:name .. '\2', 'g')
+        let a:errors[l:i] = l:stack .. l:message
     endfor
+    return a:errors
+endfunction
+
+function! s:log_result(result, suite, ...) abort
+    let l:string = a:result ? 'Pass' : 'Fail'
+    let l:part = a:0 ? printf('%s.test.%s', a:suite, a:1) : a:suite
+    call s:log(l:string, printf('%s: %sed', l:part, l:string))
 endfunction
 
 function! s:run_test(suite, test) abort
-    if s:run_part(a:suite, 'before', 'each')
-        call s:run_part(a:suite, 'test', a:test)
+    call s:log('info', printf('%s.test.%s: Running', a:suite, a:test))
+    let l:result = s:run_part(a:suite, 'before', 'each')
+    if l:result
+        let l:result *= s:run_part(a:suite, 'test', a:test)
     endif
-    call s:run_part(a:suite, 'after', 'each')
+    let l:result *= s:run_part(a:suite, 'after', 'each')
+    call s:log_result(l:result, a:suite, a:test)
+    return l:result
 endfunction
 
 function! s:run_suite(suite) abort
+    call s:log('info', printf('%s: Running', a:suite))
+    let l:result = 1
     if s:run_part(a:suite, 'before', 'all')
         for l:test in sort(keys(s:suites[a:suite].test))
-            call s:run_test(a:suite, l:test)
+            let l:result *= s:run_test(a:suite, l:test)
         endfor
     endif
-    call s:run_part(a:suite, 'after', 'all')
+    let l:result *= s:run_part(a:suite, 'after', 'all')
+    call s:log_result(l:result, a:suite)
+endfunction
+
+function! testini#get_log(...) abort
+    return s:logdata
 endfunction
 
 function! testini#run() abort
     " Keep errors in the script variable so they can be accessed by timeout
     let s:errors = []
+    let s:logdata = []
     call s:source()
     for l:suite in keys(s:suites)
         call s:run_suite(l:suite)
     endfor
-    call s:decode_callstacks()
     return s:errors
 endfunction
 
 function! testini#run_ci() abort
     try
         call testini#run()
-        call writefile(s:errors, 'testini.log')
+        call writefile(s:logdata, 'testini.log')
         execute (s:errors == [] ? 'quit!' : 'cquit!')
     catch
         call writefile([ 'INTERNAL ERROR:', s:exception() ], 'testini.log')

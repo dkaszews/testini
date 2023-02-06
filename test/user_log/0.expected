@@ -1,0 +1,9 @@
+[INFO] user_log: Running
+[USER] In before all
+[INFO] user_log.test.foo: Running
+[USER] In before each
+[USER] In test foo
+[USER] In after each
+[PASS] user_log.test.foo: Passed
+[USER] In after all
+[PASS] user_log: Passed

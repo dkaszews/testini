@@ -1,0 +1,7 @@
+[INFO] simple: Running
+[INFO] simple.test.two_plus_two_is_five: Running
+[FAIL] simple.test.two_plus_two_is_five[1]: Expected 5 but got 4
+[FAIL] simple.test.two_plus_two_is_five: Failed
+[INFO] simple.test.two_plus_two_is_four: Running
+[PASS] simple.test.two_plus_two_is_four: Passed
+[FAIL] simple: Failed

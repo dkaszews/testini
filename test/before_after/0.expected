@@ -1,0 +1,8 @@
+[INFO] before_after: Running
+[INFO] before_after.test.one: Running
+[PASS] before_after.test.one: Passed
+[INFO] before_after.test.three: Running
+[PASS] before_after.test.three: Passed
+[INFO] before_after.test.two: Running
+[PASS] before_after.test.two: Passed
+[PASS] before_after: Passed
