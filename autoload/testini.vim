@@ -90,15 +90,18 @@ function! s:map_errors(suite, middle, part, errors) abort
 endfunction
 
 function! s:log_test(suite, test, result) abort
-    call s:log(a:result, printf('%s.test.%s: %sed', a:suite, a:test, a:result))
+    let l:string = a:result ? 'Pass' : 'Fail'
+    call s:log(l:string, printf('%s.test.%s: %sed', a:suite, a:test, l:string))
 endfunction
 
 function! s:run_test(suite, test) abort
-    if s:run_part(a:suite, 'before', 'each')
-        let l:success = s:run_part(a:suite, 'test', a:test)
-        call s:log_test(a:suite, a:test, l:success ? 'Pass' : 'Fail')
+    call s:log('info', printf('%s.test.%s: Running', a:suite, a:test))
+    let l:success = s:run_part(a:suite, 'before', 'each')
+    if l:success
+        let l:success *= s:run_part(a:suite, 'test', a:test)
     endif
-    call s:run_part(a:suite, 'after', 'each')
+    let l:success *= s:run_part(a:suite, 'after', 'each')
+    call s:log_test(a:suite, a:test, l:success)
 endfunction
 
 function! s:run_suite(suite) abort
