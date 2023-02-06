@@ -1,0 +1,4 @@
+[INFO] ignore: Running
+[INFO] ignore.test.ignored_wont_fail: Running
+[PASS] ignore.test.ignored_wont_fail: Passed
+[PASS] ignore: Passed

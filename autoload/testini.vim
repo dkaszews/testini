@@ -89,28 +89,33 @@ function! s:map_errors(suite, middle, part, errors) abort
     return a:errors
 endfunction
 
-function! s:log_test(suite, test, result) abort
+function! s:log_result(result, suite, ...) abort
     let l:string = a:result ? 'Pass' : 'Fail'
-    call s:log(l:string, printf('%s.test.%s: %sed', a:suite, a:test, l:string))
+    let l:part = a:0 ? printf('%s.test.%s', a:suite, a:1) : a:suite
+    call s:log(l:string, printf('%s: %sed', l:part, l:string))
 endfunction
 
 function! s:run_test(suite, test) abort
     call s:log('info', printf('%s.test.%s: Running', a:suite, a:test))
-    let l:success = s:run_part(a:suite, 'before', 'each')
-    if l:success
-        let l:success *= s:run_part(a:suite, 'test', a:test)
+    let l:result = s:run_part(a:suite, 'before', 'each')
+    if l:result
+        let l:result *= s:run_part(a:suite, 'test', a:test)
     endif
-    let l:success *= s:run_part(a:suite, 'after', 'each')
-    call s:log_test(a:suite, a:test, l:success)
+    let l:result *= s:run_part(a:suite, 'after', 'each')
+    call s:log_result(l:result, a:suite, a:test)
+    return l:result
 endfunction
 
 function! s:run_suite(suite) abort
+    call s:log('info', printf('%s: Running', a:suite))
+    let l:result = 1
     if s:run_part(a:suite, 'before', 'all')
         for l:test in sort(keys(s:suites[a:suite].test))
-            call s:run_test(a:suite, l:test)
+            let l:result *= s:run_test(a:suite, l:test)
         endfor
     endif
-    call s:run_part(a:suite, 'after', 'all')
+    let l:result *= s:run_part(a:suite, 'after', 'all')
+    call s:log_result(l:result, a:suite)
 endfunction
 
 function! testini#run() abort

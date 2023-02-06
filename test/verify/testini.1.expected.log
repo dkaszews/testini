@@ -1,3 +1,4 @@
+[INFO] verify: Running
 [INFO] verify.test.verify_args: Running
 [FAIL] verify.test.verify_args[1]: Non-terminating assert: Expected 1 but got 0
 [FAIL] verify.test.verify_args[3]: Another non-terminating assert: Expected 1 but got 0
@@ -12,3 +13,4 @@
 [FAIL] verify.test.verify_mix[1]: Fail: Expected 1 but got 0
 [FAIL] verify.test.verify_mix[1]..testini#verify[3]: thrown suite.verify()
 [FAIL] verify.test.verify_mix: Failed
+[FAIL] verify: Failed
