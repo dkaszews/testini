@@ -4,13 +4,10 @@ on:
   push: { 'branches': 'main' }
   pull_request:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   Test:
     strategy:
+      fail-fast: false
       matrix:
         vim: [ 'vim', 'neovim' ]
         os: [ 'ubuntu-22.04', 'windows-2022', 'macos-12' ]
