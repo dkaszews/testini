@@ -8,20 +8,19 @@
 VIM=${1:-vim}
 NEOVIM=$($VIM --version | grep -cm1 'NVIM')
 HEADLESS=$([[ $NEOVIM -ne 0 ]] && echo '--headless' || echo '--not-a-term')
-SCRIPT_ROOT=$(realpath $(dirname $0))
-TESTINI_ROOT=$(realpath $SCRIPT_ROOT/..)
-TESTINI_VIM=$(realpath $TESTINI_ROOT/plugin/testini.vim)
-EXPECTED=?.expected
+SCRIPT_ROOT=$(cd "$(dirname "$0")"; pwd -P)
+TESTINI_ROOT="${SCRIPT_ROOT}/.."
+TESTINI_VIM="${TESTINI_ROOT}/plugin/testini.vim"
 
 get_expected_exitcode() {
-    file=$(ls -1 $EXPECTED)
+    file=$(ls -1 ?.expected)
     echo ${file//[^[0-9]/}
 }
 
 total_failed=0
 pushd $SCRIPT_ROOT > /dev/null
 for dir in */; do
-    echo -e "Running tests from $(realpath $dir)"
+    echo -e "Running tests from ${dir}"
     pushd $dir > /dev/null
 
     $VIM $HEADLESS -u $TESTINI_VIM -c TestiniCi
@@ -31,7 +30,7 @@ for dir in */; do
     failed=0
     [[ $exitcode -ne $expected_exitcode ]] && failed=1 \
         && echo "Expected exitcode: ${expected_exitcode}, actual: ${exitcode}"
-    diff -u $EXPECTED 'testini.log' || failed=1
+    diff -u ?.expected 'testini.log' || failed=1
     (( total_failed += $failed ))
 
     popd > /dev/null
