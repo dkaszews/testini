@@ -1,19 +1,20 @@
-name: 'Run tests'
+name: Run tests
 on:
   workflow_dispatch:
-  push: { 'branches': 'main' }
+  push: { branches: main }
   pull_request:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   Test:
     strategy:
+      fail-fast: false
       matrix:
-        vim: [ 'vim', 'neovim' ]
-        os: [ 'ubuntu-22.04', 'windows-2022' ]
+        vim: [ vim, neovim ]
+        version: [ stable ]
+        os: [ ubuntu-22.04, windows-2022, macos-12 ]
+        include:
+          # Add stable version of Neovim Ubuntu ARM
+          - { vim: neovim, version: v0.7.2, os: ubuntu-22.04 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     steps:
